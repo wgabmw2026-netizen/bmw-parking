@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BMW Championship Parking Directions</title>
+<style>
+  :root {
+    --navy: #0b1f3a;
+    --teal: #1b6d6b;
+    --white: #ffffff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(160deg, var(--navy) 0%, #123a5c 55%, var(--teal) 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--white);
+    text-align: center;
+    padding: 24px;
+  }
+  .card { max-width: 420px; width: 100%; }
+  h1 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .lot {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 18px;
+  }
+  p { opacity: 0.85; font-size: 0.95rem; margin-bottom: 26px; }
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 15px 20px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    background: var(--white);
+    color: var(--navy);
+    font-size: 1rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .btn.secondary {
+    background: transparent;
+    color: var(--white);
+    border: 2px solid rgba(255,255,255,0.7);
+  }
+  .error { font-size: 1rem; opacity: 0.9; }
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <h1>BMW Championship Parking</h1>
+  <div class="lot" id="lotName"></div>
+  <p id="msg">Opening directions&hellip;</p>
+  <div id="buttons" style="display:none;">
+    <a class="btn" id="appleBtn" href="#">Open in Apple Maps</a>
+    <a class="btn secondary" id="googleBtn" href="#">Open in Google Maps</a>
+  </div>
+</div>
+<script>
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var dest = params.get("d");
+  var name = params.get("n");
+
+  var msg = document.getElementById("msg");
+  var buttons = document.getElementById("buttons");
+  var lotName = document.getElementById("lotName");
+
+  if (name) lotName.textContent = decodeURIComponent(name);
+
+  // Validate "lat,lng"
+  var valid = false, lat, lng;
+  if (dest) {
+    var parts = dest.split(",");
+    if (parts.length === 2) {
+      lat = parseFloat(parts[0]);
+      lng = parseFloat(parts[1]);
+      valid = !isNaN(lat) && !isNaN(lng) &&
+              lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+    }
+  }
+
+  if (!valid) {
+    msg.className = "error";
+    msg.textContent = "Destination not found. Please check your parking pass QR code.";
+    return;
+  }
+
+  var coords = lat + "," + lng;
+  var appleUrl = "https://maps.apple.com/?daddr=" + coords + "&dirflg=d";
+  var googleUrl = "https://www.google.com/maps/dir/?api=1&destination=" + coords;
+
+  document.getElementById("appleBtn").href = appleUrl;
+  document.getElementById("googleBtn").href = googleUrl;
+
+  var ua = navigator.userAgent || "";
+  var isApple = /iPhone|iPad|iPod/i.test(ua) ||
+                (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
+
+  // Redirect to the right maps app for this device
+  window.location.replace(isApple ? appleUrl : googleUrl);
+
+  // Fallback: if we're still here after 1.5s, show manual buttons
+  setTimeout(function () {
+    msg.textContent = "Tap below to open directions:";
+    buttons.style.display = "block";
+  }, 1500);
+})();
+</script>
+</body>
+</html>
